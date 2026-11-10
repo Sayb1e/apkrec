@@ -81,6 +81,30 @@ python apkrec_gui.py app.apk
 - 16 字符 key 是启发式，会漏（key 含空格/非 ASCII）也会误报，只作候选排序，不当结论。
 - 资源侧是原始可打印串扫描，不做 `resources.arsc` 结构解析。
 
+## 后续要求（Roadmap）
+
+当前版本只覆盖**未加固、明文字符串**这一类样本。真实样本的坑按优先级列在这里，做到哪算哪，不预设计。
+
+| 优先级 | 场景 | 现象 | 需要的能力 |
+|---|---|---|---|
+| P0 | 加固壳 | 360、梆梆、爱加密、腾讯乐固；`classes.dex` 只有壳代码，字符串扫不到业务 | 壳特征识别 → 内存 dump dex → 自动加载 dump 结果 |
+| P0 | 动态加载 | `DexClassLoader` / `InMemoryDexClassLoader` / 从 assets 解出 dex，文件里不存在 | Frida hook 加载函数，把内存中的 dex 落盘 |
+| P1 | 字符串加密 | StringFog 或自定义 `<clinit>` 解密器，字符串池只有密文 | 静态还原解密函数，或运行时 hook 取明文 |
+| P1 | native 关键逻辑 | 校验/解密在 `.so`，Java 层只是空壳 | so 提取 + 符号扫描 + unidbg 模拟执行 |
+| P1 | 反调试 / 反环境 | ptrace 检测、`ro.kernel.qemu`、Frida 端口扫描、root 检测、签名校验 | Frida 脚本集 + Magisk/Shamiko 隐藏 |
+| P2 | 非标准打包 | split APK、XAPK、`.apks`、按 abi 分包、动态特性模块 | 多 APK 合并，按 split 名归类资源与 dex |
+| P2 | 资源保护 | `resources.arsc` 混淆、assets 加密、so 加壳 | arsc 结构化解析；加密资源特征识别 |
+| P3 | 非 Java 栈 | Flutter（libapp.so / Dart AOT）、React Native（bundle）、Unity（il2cpp） | 先做技术栈识别，再挂对应解析器 |
+
+配套的工程化需求：
+
+- `--batch <dir>`：一次扫一个目录，输出汇总表（题目多、样本多时刚需）
+- 结果落 JSON 并支持 diff：比较两个版本 APK 的字符串变化
+- 交叉引用：字符串 → 引用它的方法（现在只有偏移，要跳代码还得回 jadx/IDA）
+- GUI 右键「用 jadx 打开对应类」、资源行也能看 hex
+
+**设计原则**：宁可明确报「这类样本我不擅长」，也不要在加固样本上给出误导性的“业务 dex”。
+
 ## License
 
 MIT

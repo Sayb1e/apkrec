@@ -15,12 +15,28 @@
 """
 import sys, os, re, json, struct, zipfile, argparse
 from collections import Counter
+import ctypes
+import locale
 
-for _s in (sys.stdout, sys.stderr):
-    try:
-        _s.reconfigure(errors='backslashreplace')
-    except Exception:
-        pass
+
+def _fix_stdout():
+    """Windows 上把 stdout/stderr 固定成控制台代码页, 避免打包成 exe 后中文乱码"""
+    enc = 'utf-8'
+    if sys.platform == 'win32':
+        try:
+            cp = ctypes.windll.kernel32.GetConsoleOutputCP() or ctypes.windll.kernel32.GetACP()
+            enc = 'cp%d' % cp
+        except Exception:
+            enc = locale.getpreferredencoding(False)
+    for _s in (sys.stdout, sys.stderr):
+        try:
+            _s.reconfigure(encoding=enc, errors='backslashreplace')
+        except Exception:
+            pass
+
+
+_fix_stdout()
+
 
 # 公认的库前缀: 用来把"业务类"和"库类"分开
 LIB_PREFIXES = (

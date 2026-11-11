@@ -31,6 +31,23 @@ classes5.dex     5214       0      0%   lib
       classes3.dex  #185  0x000EA97  AES
 ```
 
+## 可执行文件（Windows）
+
+不想装 Python 的话，直接从 [Releases](https://github.com/Sayb1e/apkrec/releases) 下载：
+
+| 文件 | 大小 | 说明 |
+|---|---:|---|
+| `apkrec.exe` | 7.9 MB | 命令行版，双击会弹控制台；`apkrec.exe app.apk` |
+| `apkrec-gui.exe` | 10.9 MB | 图形版，双击即开（无控制台窗口） |
+
+两者都是 **PyInstaller onefile**，自包含 Python 3.12 + Tk，不需要目标机装任何东西。
+
+自己打包：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\build.ps1
+```
+
 ## 用法
 
 ### CLI

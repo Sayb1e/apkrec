@@ -16,6 +16,27 @@ from tkinter import ttk, filedialog, messagebox
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import apkrec as core
+import ctypes
+import locale
+
+
+def _fix_stdout():
+    """打包成 exe 后 stdout 编码会变, 统一成控制台代码页"""
+    enc = 'utf-8'
+    if sys.platform == 'win32':
+        try:
+            cp = ctypes.windll.kernel32.GetConsoleOutputCP() or ctypes.windll.kernel32.GetACP()
+            enc = 'cp%d' % cp
+        except Exception:
+            enc = locale.getpreferredencoding(False)
+    for _s in (sys.stdout, sys.stderr):
+        try:
+            _s.reconfigure(encoding=enc, errors='backslashreplace')
+        except Exception:
+            pass
+
+
+_fix_stdout()
 
 
 def _dpi_aware():
